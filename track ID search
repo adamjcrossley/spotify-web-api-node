@@ -1,0 +1,27 @@
+const SpotifyWebApi = require('spotify-web-api-node');
+const express = require('express');
+const app = express();
+
+const spotifyApi = new SpotifyWebApi({
+    clientId: 'YOUR_CLIENT_ID',
+    clientSecret: 'YOUR_CLIENT_SECRET',
+});
+
+async function getAccessToken() {
+    const data = await spotifyApi.clientCredentialsGrant();
+    spotifyApi.setAccessToken(data.body['access_token']);
+}
+
+app.get('/track/:id', async (req, res) => {
+    try {
+        await getAccessToken();
+        const trackId = req.params.id;
+        const trackData = await spotifyApi.getTrack(trackId);
+        res.json(trackData.body);
+    } catch (error) {
+        res.status(400).json({ error: 'Error fetching track data' });
+    }
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server running on port ${port}`));
